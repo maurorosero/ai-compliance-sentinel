@@ -14,6 +14,7 @@
 - [Flujo de ramas (CI/CD)](#flujo-de-ramas-cicd)
 - [Reglas de oro](#reglas-de-oro)
 - [Estructura del repositorio](#estructura-del-repositorio)
+- [Evaluación](#evaluación)
 - [Primeros pasos (onboarding)](#primeros-pasos-onboarding)
 - [Contribuir](#contribuir)
 
@@ -77,6 +78,12 @@ Flujo: `develop` → `testing` → `main`. Los cambios se integran vía pull req
 ```
 
 El archivo **`POLICIES.md`** en la raíz es el contrato de verdad: la IA lo utiliza como base para el razonamiento de cumplimiento.
+
+---
+
+## Evaluación
+
+Cronograma de entregables, criterios de evaluación final (Ingeniería 40%, IA & ChatOps 20%, Metodología 20%, Venta & Demo 20%) y **métricas medibles por semana**: **[Documento de evaluación](docs/EVALUACION.md)**.
 
 ---
 
