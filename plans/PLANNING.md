@@ -28,5 +28,6 @@ Documentos que describen **requests de cambios** (propuestas, mejoras, diseños)
 | Documento | Descripción | Estado |
 |-----------|-------------|--------|
 | [RFC-001-plantilla.md](RFC-001-plantilla.md) | Plantilla para nuevas solicitudes de cambio | Borrador |
+| [RFC-002-init.md](RFC-002-init.md) | Inicialización del proyecto: hoja de ruta crítica, milestones e issues | Aprobado |
 
 *Se añaden filas a esta tabla conforme se creen nuevos RFCs o propuestas en `plans/`.*
