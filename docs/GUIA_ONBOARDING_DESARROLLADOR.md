@@ -76,7 +76,21 @@ git config --global user.email
 ### 3.2 Permisos: colaborador vs fork
 
 - **Si te han añadido como colaborador:** Verás el repo en tu cuenta o te habrán pasado el enlace. Puedes clonar directamente y hacer push a ramas (según las reglas del repo).
-- **Si aún no eres colaborador:** Puedes hacer un **fork** (botón **Fork** arriba a la derecha), clonar tu fork y luego proponer cambios al repo original mediante **Pull Requests**. Pide al mantenedor que te añada como colaborador si vas a participar de forma continuada.
+- **Si aún no eres colaborador:** Puedes hacer un **fork** (botón **Fork** arriba a la derecha), clonar tu fork y luego proponer cambios al repo original mediante **Pull Requests**. Para participar de forma continuada, solicita al mantenedor que te añada como colaborador (ver siguiente apartado).
+
+### 3.3 Cómo solicitar ser colaborador
+
+Si quieres que el mantenedor te añada como **colaborador** del repositorio (para poder hacer push a ramas sin usar fork), puedes hacerlo de estas formas:
+
+| Forma | Pasos |
+| ----- | ----- |
+| **Issue en el repo** | 1. Ve a [Issues](https://github.com/maurorosero/ai-compliance-sentinel/issues). 2. **New issue**. 3. Título ej.: *Solicitud: añadir como colaborador*. 4. En el cuerpo indica tu **nombre de usuario de GitHub** (ej. `tu-usuario`), tu **rol** en el equipo si ya lo tienes (Infra, Data & Sensors, AI & ChatOps, Security & AI-Docs) y una línea de presentación. 5. Asigna la etiqueta `question` o la que use el equipo. 6. **Submit new issue**. |
+| **Contacto directo** | Si conoces al mantenedor (email, Slack, etc.), escríbele indicando: *"Me gustaría ser colaborador del repo ai-compliance-sentinel. Mi usuario de GitHub es: [tu-usuario]."* Así puede añadirte sin tener que buscar tu perfil. |
+| **Tras un PR aceptado** | En el comentario del PR o en un issue de seguimiento, puedes pedir: *"Cuando mergees, ¿puedes añadirme como colaborador? Mi usuario es [tu-usuario]."* |
+
+**Qué hace el mantenedor:** En el repositorio, **Settings → Collaborators → Add people** (o *Invite a collaborator*), escribe tu usuario de GitHub y asigna el permiso (por ejemplo *Write*). Tú recibirás una invitación por email; al aceptarla, podrás clonar el repo y hacer push a las ramas permitidas (respetando siempre la protección de `main` y `testing`, que exigen PR).
+
+**Mientras no seas colaborador:** Sigue pudiendo contribuir con **fork + Pull Request**. No es obligatorio ser colaborador para participar.
 
 ---
 
