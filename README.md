@@ -6,8 +6,19 @@
 
 ---
 
+## Disclaimer
+
+**Este proyecto nace como un proyecto universitario** para la carrera de **Licenciatura en Desarrollo y Gestión de Software** de la **Facultad de Ingeniería en Sistemas Computacionales** de la **Universidad Tecnológica de Panamá** (Centro Regional de Coclé), en la materia **«Práctica Laboral en Desarrollo de Software»**.
+
+Dicha asignatura es una **colaboración de Cerebro Digital con la universidad**. Parte o la totalidad del proyecto forma parte de la funcionalidad de **[Infraforge](https://github.com/maurorosero/infraforge)**.
+
+Este proyecto, en sí y por sí mismo, **no pretende ser un proyecto final y profesional de uso público**. **Se recomienda no utilizarlo en producción.**
+
+---
+
 ## Índice
 
+- [Disclaimer](#disclaimer)
 - [Especificación del proyecto](#especificación-del-proyecto)
   - [1. Visión estratégica](#1-visión-estratégica)
   - [2. Descripción funcional y casos de uso](#2-descripción-funcional-y-casos-de-uso)
@@ -17,6 +28,7 @@
 - [Evaluación](#evaluación)
 - [Primeros pasos (onboarding)](#primeros-pasos-onboarding)
 - [Contribuir](#contribuir)
+- [Licencia](#licencia)
 
 ---
 
@@ -103,6 +115,18 @@ Resumen rápido:
 2. Realiza tus cambios y asegúrate de que el CI pase.
 3. Abre un pull request hacia `develop` (o `testing`/`main` según el flujo acordado).
 4. Respeta las [reglas de oro](#reglas-de-oro) en todo el código y la infraestructura.
+
+---
+
+## Licencia
+
+Este proyecto está bajo la licencia **[Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0)](https://creativecommons.org/licenses/by-nc-sa/4.0/)**.
+
+- **Uso no comercial únicamente.** Uso comercial prohibido sin autorización.
+- **ShareAlike:** Las obras derivadas deben publicarse bajo la misma licencia.
+- **Atribución:** Se debe citar la autoría y enlazar a esta licencia.
+
+Texto completo: [LICENSE](LICENSE).
 
 ---
 
