@@ -81,6 +81,10 @@ El archivo **`POLICIES.md`** en la raíz es el contrato de verdad: la IA lo util
 
 ## Contribuir
 
+Consulta la **[Guía de contribución](CONTRIBUTING.md)** para roles, responsabilidades por semana y criterios de colaboración.
+
+Resumen rápido:
+
 1. Crea una rama desde `develop` (p. ej. `feature/nombre` o `fix/nombre`).
 2. Realiza tus cambios y asegúrate de que el CI pase.
 3. Abre un pull request hacia `develop` (o `testing`/`main` según el flujo acordado).
