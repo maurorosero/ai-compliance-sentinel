@@ -25,6 +25,7 @@ Este proyecto, en sí y por sí mismo, **no pretende ser un proyecto final y pro
 - [Flujo de ramas (CI/CD)](#flujo-de-ramas-cicd)
 - [Reglas de oro](#reglas-de-oro)
 - [Estructura del repositorio](#estructura-del-repositorio)
+- [Planificación y diseño](#planificación-y-diseño)
 - [Evaluación](#evaluación)
 - [Primeros pasos (onboarding)](#primeros-pasos-onboarding)
 - [Contribuir](#contribuir)
@@ -87,9 +88,17 @@ Flujo: `develop` → `testing` → `main`. Los cambios se integran vía pull req
 ```
 .github/workflows/   # Pipelines de CI/CD (GitHub Actions)
 ├── ci.yml           # Lint, tests y validaciones
+docs/                # Documentación (evaluación, onboarding)
+plans/               # Planificación, diseño, RFCs y soporte a issues (ver más abajo)
 ```
 
 El archivo **`POLICIES.md`** en la raíz es el contrato de verdad: la IA lo utiliza como base para el razonamiento de cumplimiento.
+
+---
+
+## Planificación y diseño
+
+La carpeta **[`plans/`](plans/)** contiene la planificación general del proyecto, soporte al diseño y arquitectura, asignaciones complejas, planificación de IA, imágenes, tablas y datos de soporte que alimentan los issues y la planificación. El documento principal es **[`plans/PLANNING.md`](plans/PLANNING.md)**, que describe en detalle el propósito de la carpeta y mantiene una tabla con los documentos de solicitud de cambios sugeridos (RFCs) ubicados en `plans/`.
 
 ---
 
