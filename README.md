@@ -14,6 +14,7 @@
 - [Flujo de ramas (CI/CD)](#flujo-de-ramas-cicd)
 - [Reglas de oro](#reglas-de-oro)
 - [Estructura del repositorio](#estructura-del-repositorio)
+- [Primeros pasos (onboarding)](#primeros-pasos-onboarding)
 - [Contribuir](#contribuir)
 
 ---
@@ -76,6 +77,12 @@ Flujo: `develop` → `testing` → `main`. Los cambios se integran vía pull req
 ```
 
 El archivo **`POLICIES.md`** en la raíz es el contrato de verdad: la IA lo utiliza como base para el razonamiento de cumplimiento.
+
+---
+
+## Primeros pasos (onboarding)
+
+¿Eres nuevo en el proyecto? Sigue la **[Guía paso a paso para desarrolladores](docs/GUIA_ONBOARDING_DESARROLLADOR.md)** desde crear una cuenta en GitHub hasta hacer tu primer pull request.
 
 ---
 
