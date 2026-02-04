@@ -46,3 +46,23 @@ Utilizar **MySQL** como motor de base de datos relacional, descartando el uso de
 Se obtiene un sistema de persistencia rápido y confiable, ideal para el volumen de datos esperado en una plataforma de cumplimiento.
 
 ---
+
+## ADR 003: Orquestación de IA y Políticas en RAG con Flowise
+
+**Estado:** Aceptado  
+**Fecha:** 2026-02-03  
+
+### Contexto
+Para que la auditoría sea realmente inteligente, el sistema debe comparar los datos de **Fleet** contra normativas de seguridad (Polices). Almacenar estas reglas en tablas SQL rígidas dificultaría su actualización y limitaría la capacidad de análisis del LLM.
+
+### Decisión
+Implementar **Flowise** para gestionar el flujo de la Inteligencia Artificial, utilizando un sistema **RAG (Retrieval-Augmented Generation)** para las políticas de cumplimiento.
+
+### Justificación
+- **Políticas en el RAG:** Las normas se cargan como documentos (PDF/MD). La IA consulta estos documentos en lugar de depender de reglas programadas fijas (*hard-coded*).
+- **Análisis de Hallazgos:** Permite que modelos como **Groq** u **Ollama** generen el mensaje de alerta y la recomendación de remediación basándose en el contexto real del error detectado por Fleet.
+- **Separación de Responsabilidades:** Flowise maneja la lógica cognitiva, **n8n** la orquestación de datos y **MySQL** la persistencia final.
+
+### Consecuencias
+- **Positivas:** El sistema es extremadamente flexible ante cambios en leyes o normas de seguridad.
+- **Negativas:** La arquitectura se vuelve más sofisticada, requiriendo conocimiento en ingeniería de prompts y gestión de vectores.
