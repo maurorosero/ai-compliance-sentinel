@@ -6,6 +6,8 @@
 .vault_pass
 **/sops*.yml
 *.sops
+**/*.crt
+**/*.key
 
 # Python
 __pycache__/
