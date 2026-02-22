@@ -13,6 +13,10 @@
 !postgres/
 !postgres/**
 
+# Importante: incluir la carpeta fleetctl y su contenido
+!fleetctl/
+!fleetctl/**
+
 # Importante: incluir la carpeta certs y su contenido (si lo hay)
 !certs/
 !certs/**
