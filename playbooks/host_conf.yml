@@ -1,0 +1,27 @@
+---
+- name: Configurar hosts en Windows y Linux
+  hosts: all
+  gather_facts: true
+
+  vars:
+    controller_ip: "192.168.0.2"
+    dns_name: "fleet.local"
+
+  tasks:
+
+    - name: Asegurar entrada en Windows
+      community.windows.win_hosts:
+        state: present
+        ip_address: "{{ controller_ip }}"
+        canonical_name: "{{ dns_name }}"
+      when: ansible_facts.os_family == "Windows"
+
+    - name: Asegurar entrada en Linux
+      ansible.builtin.lineinfile:
+        path: /etc/hosts
+        create: true
+        state: present
+        regexp: '^\s*{{ controller_ip }}\s+{{ dns_name }}\s*$'
+        line: "{{ controller_ip }} {{ dns_name }}"
+      become: true
+      when: ansible_facts.system == "Linux"
