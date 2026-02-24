@@ -1,7 +1,6 @@
 ---
 - name: Instalar paquete en Linux (auto DEB/RPM)
   hosts: linux
-  become: true
   gather_facts: true
 
   vars:

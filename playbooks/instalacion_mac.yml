@@ -1,0 +1,25 @@
+---
+- name: Instalar paquete en macOS
+  hosts: macos
+  gather_facts: true
+
+  vars:
+    installer_pkg: ../instaladores/fleet-osquery.pkg
+
+  tasks:
+    - name: Crear carpeta temporal
+      ansible.builtin.file:
+        path: /tmp/fleet
+        state: directory
+        mode: "0755"
+
+    - name: Copiar instalador .pkg
+      ansible.builtin.copy:
+        src: "{{ installer_pkg }}"
+        dest: /tmp/fleet/fleet-osquery.pkg
+        mode: "0644"
+
+    - name: Instalar paquete .pkg
+      ansible.builtin.command:
+        cmd: installer -pkg /tmp/fleet/fleet-osquery.pkg -target /
+      become: true
