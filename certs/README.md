@@ -13,7 +13,7 @@ En esta carpeta se generan los certificados TLS necesarios para **Fleet**.
 
 ## Generar certificados (self-signed)
 
-Ejecuta estos comandos desde la raíz del proyecto:
+Ejecuta estos comandos desde la **raíz del proyecto**:
 
 ```bash
 
@@ -40,3 +40,5 @@ openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
 ```bash
 chmod 644 certs/fleet.key certs/fleet.crt
 ```
+
+*Por ultimo recuerda especificar la ip o dominio usada en la variable `FLEET_HOST`.*
