@@ -1,0 +1,128 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 3
+            }
+          ]
+        }
+      },
+      "id": "9f885977-de6a-409c-82d0-8b7fa09a07c6",
+      "name": "Schedule Trigger7",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [560, 768]
+    },
+    {
+      "parameters": {
+        "url": "=https://host.docker.internal:1337/api/latest/fleet/policies",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Authorization", "value": "=Bearer ***" },
+            { "name": "Accept", "value": "application/json" }
+          ]
+        },
+        "options": { "allowUnauthorizedCerts": true, "timeout": 30000 }
+      },
+      "id": "4eef7fbd-fd8c-4b61-8d57-fb6a9ab9b4ac",
+      "name": "Request para la lista de politicas1",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [720, 768]
+    },
+    {
+      "parameters": {
+        "url": "=https://host.docker.internal:1337/api/latest/fleet/policies?failing=true",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Authorization", "value": "=Bearer ***" },
+            { "name": "Accept", "value": "application/json" }
+          ]
+        },
+        "options": { "allowUnauthorizedCerts": true, "timeout": 30000 }
+      },
+      "id": "0e3b7784-56c6-46f6-9899-c16c916ca58f",
+      "name": "Request a fleet de politicas inferidas1",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [896, 768]
+    },
+    {
+      "parameters": {
+        "jsCode": "const j=$json; const p=Array.isArray(j?.policies)?j.policies:[]; return p.map(x=>({json:{policy_id:String(x.id??''),policy_name:x.name??'',policy_description:x.description||'Sin descripcion',passing_host_count:Number(x.passing_host_count||0),failing_host_count:Number(x.failing_host_count||0)}})).filter(i=>i.json.failing_host_count>0);"
+      },
+      "id": "abdd15fe-44ca-4102-8bed-fc73ada8b25b",
+      "name": "Division de policies inferidas1",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1056, 768]
+    },
+    {
+      "parameters": {
+        "url": "={{'https://host.docker.internal:1337/api/latest/fleet/hosts?page=0&per_page=50&device_mapping=true&order_key=display_name&order_direction=asc&policy_id=' + $json.policy_id + '&policy_response=failing'}}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Authorization", "value": "=Bearer ***" },
+            { "name": "Accept", "value": "application/json" }
+          ]
+        },
+        "options": { "allowUnauthorizedCerts": true, "timeout": 30000 }
+      },
+      "id": "78910d9d-a0bf-4210-8954-9bf3c6534658",
+      "name": "Fallas de hosts por policies1",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1232, 768],
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const pol=$items('Division de policies inferidas1',0,0).map(i=>i.json); const res=$items('Fallas de hosts por policies1',0,0).map(i=>i.json); if(!pol.length){return[{json:{subject:'Reporte Fleet - Sin incumplimientos',body_html:'<p>No se detectaron incumplimientos.</p>'}}];} const out=[]; for(let i=0;i<pol.length;i++){const p=pol[i]; const h=(res[i]?.hosts||[]).map(x=>x.display_name||x.hostname||x.name||'unknown-host'); out.push(`<tr><td>${p.policy_name}</td><td>${p.policy_description}</td><td>${h.join(', ')||'Sin detalle'}</td></tr>`);} const html=`<h2>Reporte de incumplimientos Fleet</h2><table border='1' cellpadding='6' cellspacing='0'><tr><th>Policy</th><th>Descripcion</th><th>Computadoras</th></tr>${out.join('')}</table>`; return [{json:{subject:`[ALERTA] Incumplimientos Fleet (${pol.length} policies)`,body_html:html}}];"
+      },
+      "id": "a79888fd-da5f-4a79-83a3-60a2dd0f409f",
+      "name": "Build Unified Report1",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1424, 768]
+    },
+    {
+      "parameters": {
+        "sendTo": "ejsg011004class@gmail.com",
+        "subject": "={{$json.subject}}",
+        "message": "={{$json.body_html}}",
+        "options": {}
+      },
+      "id": "b5189058-3aac-45ed-9675-18e7fb966a77",
+      "name": "Enviar correo1",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [1584, 768],
+      "webhookId": "cfb1c18e-2fa8-478e-a9fb-51ea5779c194",
+      "credentials": {
+        "gmailOAuth2": { "id": "*************", "name": "Gmail account" }
+      }
+    }
+  ],
+  "connections": {
+    "Schedule Trigger7": { "main": [[{ "node": "Request para la lista de politicas1", "type": "main", "index": 0 }]] },
+    "Request para la lista de politicas1": { "main": [[{ "node": "Request a fleet de politicas inferidas1", "type": "main", "index": 0 }]] },
+    "Request a fleet de politicas inferidas1": { "main": [[{ "node": "Division de policies inferidas1", "type": "main", "index": 0 }]] },
+    "Division de policies inferidas1": { "main": [[{ "node": "Fallas de hosts por policies1", "type": "main", "index": 0 }]] },
+    "Fallas de hosts por policies1": { "main": [[{ "node": "Build Unified Report1", "type": "main", "index": 0 }]] },
+    "Build Unified Report1": { "main": [[{ "node": "Enviar correo1", "type": "main", "index": 0 }]] }
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "695e011ca5fced15abed24fc860ae0275c3eaf218f3be1d925265a518adaaec2"
+  }
+}
+
+
