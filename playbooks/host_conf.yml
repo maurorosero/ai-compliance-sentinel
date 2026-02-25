@@ -1,0 +1,49 @@
+---
+- name: Configurar hosts en Windows y Linux
+  hosts: all
+  gather_facts: true
+
+  vars:
+    controller_ip: "192.30.168.63" #cambiar por la IP real del controlador
+    dns_name: "fleet.local" #cambiar por el nombre DNS que deseas usar para el controlador
+
+  tasks:
+
+    - name: Asegurar entrada en Windows
+      community.windows.win_hosts:
+        state: present
+        ip_address: "{{ controller_ip }}"
+        canonical_name: "{{ dns_name }}"
+      when: ansible_facts.os_family == "Windows"
+
+    - name: Eliminar entradas antiguas en Linux/Mac
+      ansible.builtin.lineinfile:
+        path: /etc/hosts
+        regexp: '.*\bfleet\.local\b.*'
+        state: absent
+      become: true
+      when: ansible_facts.os_family in ["Debian","RedHat","Darwin"]
+
+    - name: Asegurar entrada única  en Linux/Mac
+      ansible.builtin.lineinfile:
+        path: /etc/hosts
+        create: true
+        state: present
+        regexp: '^\s*{{ controller_ip }}\s+{{ dns_name }}\s*$'
+        line: "{{ controller_ip }} {{ dns_name }}"
+        insertafter: EOF
+      become: true
+      when: ansible_facts.os_family in ["Debian","RedHat","Darwin"]
+
+# Nomas para Debug
+    - name: Mostrar últimas líneas de /etc/hosts para validar
+      ansible.builtin.command: tail -n 5 /etc/hosts
+      register: hosts_tail
+      changed_when: false
+      when: ansible_facts.os_family in ["Debian","RedHat","Darwin"]
+
+    - name: Debug salida de /etc/hosts
+      ansible.builtin.debug:
+        var: hosts_tail.stdout_lines
+      when: ansible_facts.os_family in ["Debian","RedHat","Darwin"]
+

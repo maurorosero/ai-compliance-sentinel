@@ -1,0 +1,42 @@
+---
+- name: Instalar paquete en Linux (auto DEB/RPM)
+  hosts: linux
+  gather_facts: true
+
+  vars:
+    installer_deb: ../instaladores/fleet-osquery.deb
+    installer_rpm: ../instaladores/fleet-osquery.rpm
+
+  tasks:
+    - name: Crear carpeta temporal
+      ansible.builtin.file:
+        path: /tmp/fleet
+        state: directory
+        mode: "0755"
+
+    - name: Copiar instalador (DEB) si aplica
+      ansible.builtin.copy:
+        src: "{{ installer_deb }}"
+        dest: /tmp/fleet/fleet-osquery.deb
+        mode: "0644"
+      when: ansible_facts.os_family == "Debian"
+
+    - name: Copiar instalador (RPM) si aplica
+      ansible.builtin.copy:
+        src: "{{ installer_rpm }}"
+        dest: /tmp/fleet/fleet-osquery.rpm
+        mode: "0644"
+      when: ansible_facts.os_family in ["RedHat", "Rocky", "AlmaLinux", "Suse"]
+
+    - name: Instalar DEB
+      ansible.builtin.apt:
+        deb: /tmp/fleet/fleet-osquery.deb
+        state: present
+      when: ansible_facts.os_family == "Debian"
+
+    - name: Instalar RPM
+      ansible.builtin.dnf:
+        name: /tmp/fleet/fleet-osquery.rpm
+        state: present
+        disable_gpg_check: true
+      when: ansible_facts.os_family in ["RedHat", "Rocky", "AlmaLinux", "Suse"]

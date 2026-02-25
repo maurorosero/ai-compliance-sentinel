@@ -1,0 +1,75 @@
+---
+- name: Bootstrap users + SSH keys
+  hosts: all
+  vars_files:
+    - group_vars/all/vault.yml
+  tasks:
+  
+    - name: Bootstrap user en Windows
+      block:
+        - name: Crear usuario administrador (Windows)
+          ansible.windows.win_user:
+            name: "{{ vault_ansible_user }}"
+            password: "{{ vault_ansible_user_password }}"
+            state: present
+            groups:
+              - S-1-5-32-544  
+            groups_action: replace
+
+        - name: Asegurar que la contraseña nunca expire (Opcional para cuentas de servicio)
+          ansible.windows.win_user:
+            name: "{{ vault_ansible_user }}"
+            password_expired: no
+            password_never_expires: yes
+      when: ansible_facts['os_family'] == "Windows"
+
+    - name: Bootstrap user en Linux
+      block:
+        - name: Create user (Linux)
+          ansible.builtin.user:
+            name: "{{ vault_ansible_user }}"
+            password: "{{ vault_ansible_user_password | password_hash('sha512') }}"
+            state: present
+
+        - name: Add user to sudo group (Debian/Ubuntu)
+          ansible.builtin.user:
+            name: "{{ vault_ansible_user }}"
+            groups: sudo
+            append: yes
+          when: ansible_facts['os_family'] == "Debian"
+
+        - name: Add user to wheel group (RHEL/CentOS)
+          ansible.builtin.user:
+            name: "{{ vault_ansible_user }}"
+            groups: wheel
+            append: yes
+          when: ansible_facts['os_family'] == "RedHat"
+      when: ansible_facts['os_family'] in ["Debian", "RedHat"]
+
+    - name: Bootstrap user en macOS
+      block:
+        - name: Create user (macOS)
+          ansible.builtin.user:
+            name: "{{ vault_ansible_user }}"
+            state: present
+
+        - name: Set password (macOS)
+          ansible.builtin.command: >
+            dscl . -passwd /Users/{{ vault_ansible_user }} {{ vault_ansible_user_password }}
+          become: true
+          no_log: true
+
+        - name: Add user to admin group (macOS)
+          ansible.builtin.user:
+            name: "{{ vault_ansible_user }}"
+            groups: admin
+            append: yes
+      when: ansible_facts['os_family'] == "Darwin"
+
+    - name: Add SSH key (Linux/macOS only)
+      ansible.posix.authorized_key:
+        user: "{{ vault_ansible_user }}"
+        #you can also use another key type, e.g. rsa, but ed25519 is more secure and faster
+        key: "{{ lookup('file', '~/.ssh/id_ed25519.pub') }}"
+        state: present
+      when: ansible_facts['os_family'] != "Windows"
