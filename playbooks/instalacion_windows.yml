@@ -1,0 +1,21 @@
+---
+- name: Instalar MSI en Windows
+  hosts: windows
+  gather_facts: no
+
+  tasks:
+    - name: Crear carpeta temporal
+      ansible.windows.win_file:
+        path: C:\Temp
+        state: directory
+
+    - name: Copiar MSI al Windows
+      ansible.windows.win_copy:
+        src: ../instaladores/fleet-osquery.msi
+        dest: C:\Temp\fleet-osquery.msi
+
+    - name: Instalar MSI (silencioso)
+      ansible.windows.win_package:
+        path: C:\Temp\fleet-osquery.msi
+        state: present
+        arguments: /qn /norestart

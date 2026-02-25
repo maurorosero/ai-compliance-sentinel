@@ -1,0 +1,38 @@
+# =========================
+# INVENTARIO PRECONFIG
+# Estado inicial:
+# - SSH habilitado (Linux/macOS)
+# - WinRM habilitado (Windows)
+# - Usuario temporal/bootstrap existente
+# - Autenticacion por password
+# =========================
+
+[linux]
+linux1 ansible_host=192.168.117.131 ansible_user=CHANGE_ME ansible_password=CHANGE_ME ansible_become_password=CHANGE_ME
+linux2 ansible_host=192.168.117.132 ansible_user=CHANGE_ME ansible_password=CHANGE_ME ansible_become_password=CHANGE_ME
+linux3   ansible_host=192.168.117.133 ansible_user=CHANGE_ME ansible_password=CHANGE_ME ansible_become_password=CHANGE_ME
+...
+
+[linux:vars]
+ansible_connection=ssh
+ansible_become=true
+ansible_become_method=sudo
+
+[windows]
+win1 ansible_host=192.168.117.136 ansible_user=CHANGE_ME ansible_password=CHANGE_ME
+win2 ansible_host=192.168.117.137 ansible_user=CHANGE_ME ansible_password=CHANGE_ME
+win3 ansible_host=192.168.117.138 ansible_user=CHANGE_ME ansible_password=CHANGE_ME
+
+[windows:vars]
+ansible_connection=winrm
+ansible_winrm_server_cert_validation=ignore
+
+[macos]
+mac1 ansible_host=192.168.117.138 ansible_user=bootstrap ansible_password=CHANGE_ME ansible_become_password=CHANGE_ME
+mac2 ansible_host=192.168.117.139 ansible_user=bootstrap ansible_password=CHANGE_ME ansible_become_password=CHANGE_ME
+mac3 ansible_host=192.168.117.140 ansible_user=bootstrap ansible_password=CHANGE_ME ansible_become_password=CHANGE_ME
+
+[macos:vars]
+ansible_connection=ssh
+ansible_become=true
+ansible_become_method=sudo
