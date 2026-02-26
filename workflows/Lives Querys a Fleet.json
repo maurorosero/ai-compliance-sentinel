@@ -1,0 +1,363 @@
+{
+  "name": "Lives Querys a Fleet",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -864,
+        -592
+      ],
+      "id": "bfdd57f3-49bf-4317-837d-9dc660ae4297",
+      "name": "Chat Trigger",
+      "webhookId": "f39a75be-9e41-4493-8d59-101365c25140",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://host.docker.internal:1337/api/v1/fleet/login",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n  \"email\": \"kjmg2325@gmail.com\",\n  \"password\": \"@Stayhumble521\"\n}",
+        "options": {
+          "allowUnauthorizedCerts": true
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -208,
+        -592
+      ],
+      "id": "cee2fc28-5537-4bab-b938-7f4c6b2b4bd8",
+      "name": "GET TOKEN"
+    },
+    {
+      "parameters": {
+        "method": "PATCH",
+        "url": "https://host.docker.internal:1337/api/v1/fleet/queries/126",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $('GET TOKEN').item.json.token }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"query\": \"{{ $('AI Agent').item.json.output.replace(/```sql/g, '').replace(/```/g, '').replace(/\\n/g, ' ').trim() }}\"\n}",
+        "options": {
+          "allowUnauthorizedCerts": true
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        240,
+        -592
+      ],
+      "id": "76961924-9a61-478a-a90b-eec3ad857d19",
+      "name": "Update Query Placeholder"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.chatInput }}",
+        "options": {
+          "systemMessage": "Rol: Eres el Arquitecto de Base de Datos de \"AI-Compliance Sentinel\". Tu misión es generar SQL para Windows usando SOLO tablas del núcleo (Core Tables) que nunca fallan.\n\nDICCIONARIO \"MODO SEGURO\" (WINDOWS CORE):\n\n1. 🔌 ALMACENAMIENTO Y USBs (Infalible):\n- \"usb\", \"pendrive\", \"memoria externa\": SELECT device_id, description, file_system, size FROM logical_drives WHERE description LIKE '%Removable%';\n- \"disco duro\", \"espacio\": SELECT device_id, description, size, free_space FROM logical_drives WHERE description LIKE '%Fixed%';\n- \"hardware general\", \"cpu\", \"ram\": SELECT cpu_brand, physical_memory, hardware_model FROM system_info;\n- \"bios\", \"serial\": SELECT vendor, version, release_date FROM system_info;\n\n2. 🛡️ CIBERSEGURIDAD:\n- \"antivirus\", \"defender\": SELECT name, state FROM windows_security_products;\n- \"firewall\": SELECT name, service_enabled FROM windows_firewall_rules WHERE service_enabled = 1 LIMIT 5;\n- \"cifrado\": SELECT drive_letter, protection_status FROM bitlocker_info;\n- \"parches\": SELECT hotfix_id, installed_on FROM patches LIMIT 10;\n- \"certificados\": SELECT common_name, issuer FROM certificates WHERE path LIKE '%My%' LIMIT 5;\n\n3. 🌐 REDES E INTERNET:\n- \"ip\", \"dirección ip\": SELECT address, interface, mask FROM interface_addresses WHERE address NOT LIKE '127.%' AND address NOT LIKE '169.254.%' AND address NOT LIKE '::%';\n- \"puertos\", \"listening\": SELECT port, protocol, address, pid FROM listening_ports;\n- \"dns\": SELECT hostname, address FROM dns_cache;\n- \"conexiones\", \"quién consume internet\": SELECT s.local_port, s.remote_address, s.state, p.name FROM process_open_sockets s JOIN processes p ON s.pid = p.pid WHERE s.state = 'ESTABLISHED' AND s.remote_address NOT LIKE '127.%' LIMIT 20;\n- \"rutas\": SELECT destination, gateway, metric FROM routes;\n\n4. 💾 SOFTWARE Y PROCESOS:\n- \"programas\", \"software\": SELECT name, version, install_date FROM programs;\n- \"procesos\": SELECT pid, name, path FROM processes;\n- \"servicios\": SELECT name, status FROM services WHERE status = 'RUNNING';\n- \"tareas\": SELECT name, enabled FROM scheduled_tasks WHERE enabled = 1;\n- \"inicio\": SELECT name, source FROM startup_items;\n\n5. 👤 SISTEMA:\n- \"usuarios\": SELECT username, type FROM users;\n- \"sesiones\": SELECT user, host, time FROM logged_in_users;\n- \"versión so\": SELECT name, version, build FROM os_version;\n- \"uptime\": SELECT days, hours, minutes FROM uptime;\n\nREGLAS DE ORO:\n1. TABLAS PROHIBIDAS: JAMÁS uses 'usb_devices' (usa logical_drives) ni 'socket_events' (usa process_open_sockets).\n2. SIN FORMATO: Entrega SOLO el texto SQL limpio.\n3. UNA LÍNEA: Todo el SQL en una sola línea."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        -592,
+        -592
+      ],
+      "id": "6f9aafd5-d3bb-4f46-b59c-9e4190d5600e",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": "ministral-3:3B",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [
+        -784,
+        -336
+      ],
+      "id": "3b1c7aae-db02-44f0-ab8f-dfbb3b8f167e",
+      "name": "Ollama Chat Model",
+      "credentials": {
+        "ollamaApi": {
+          "id": "edDBBDLtTnFMCq8Y",
+          "name": "Ollama account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Analiza el siguiente resultado técnico de la auditoría y genera un reporte:\n\n{{ JSON.stringify($json) }}",
+        "options": {
+          "systemMessage": "Rol: Eres un Analista de Ciberseguridad Senior del proyecto \"AI-Compliance Sentinel\".\n\nTu Misión:\nRecibirás un JSON con datos técnicos de una auditoría en tiempo real. Debes interpretar esos datos y generar un reporte ejecutivo claro y conciso en español.\n\nInstrucciones de Respuesta:\n1. SI \"rows\" ESTÁ VACÍO ([]):\n   - Responde: \"✅ *Sin Novedades:* No se encontraron resultados para esta búsqueda en los equipos conectados.\"\n\n2. SI \"rows\" TIENE DATOS:\n   - Usa un tono de alerta profesional.\n   - Resume los hallazgos en una lista con viñetas.\n   - Destaca los datos clave (nombres de dispositivos, usuarios, puertos).\n   - Indica en qué Host ID se encontró cada cosa.\n\n3. SI HAY UN ERROR (\"error\"):\n   - Explica el problema en lenguaje sencillo.\n\nFormato de Entrada:\n{{ $json }}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        672,
+        -592
+      ],
+      "id": "507f37e2-5fa1-4c06-b8f5-d39344b2d45c",
+      "name": "AI Analyst"
+    },
+    {
+      "parameters": {
+        "url": "https://host.docker.internal:1337/api/v1/fleet/hosts",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "status",
+              "value": "online"
+            },
+            {
+              "name": "per_page",
+              "value": "1000"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $json.token }}"
+            }
+          ]
+        },
+        "options": {
+          "allowUnauthorizedCerts": true
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        16,
+        -592
+      ],
+      "id": "f9c957ee-d1ee-43af-96c3-65d7e81e1133",
+      "name": "Get Hosts"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://host.docker.internal:1337/api/v1/fleet/queries/126/run",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $('GET TOKEN').item.json.token }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"host_ids\": {{ JSON.stringify($('Get Hosts').item.json.hosts.map(h => h.id)) }}\n}",
+        "options": {
+          "allowUnauthorizedCerts": true
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        464,
+        -592
+      ],
+      "id": "c8d5d704-3831-4dc1-a6d4-61c713204798",
+      "name": "Run Query Campaign"
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-oss-120b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        672,
+        -352
+      ],
+      "id": "e0f49916-a446-42b3-8bca-80b847e9993f",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "Byq8awLCudTT0Q6N",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "ministral-3:3B",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [
+        896,
+        -320
+      ],
+      "id": "853d07c4-d818-4cf7-9c4b-5b4eb22651b8",
+      "name": "Ollama Chat Model1",
+      "credentials": {
+        "ollamaApi": {
+          "id": "edDBBDLtTnFMCq8Y",
+          "name": "Ollama account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-oss-120b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        -592,
+        -352
+      ],
+      "id": "ee1e2ba4-3186-40de-be11-9d8501fdde07",
+      "name": "Groq Chat Model1",
+      "credentials": {
+        "groqApi": {
+          "id": "Byq8awLCudTT0Q6N",
+          "name": "Groq account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Chat Trigger": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GET TOKEN": {
+      "main": [
+        [
+          {
+            "node": "Get Hosts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Query Placeholder": {
+      "main": [
+        [
+          {
+            "node": "Run Query Campaign",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "GET TOKEN",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ollama Chat Model": {
+      "ai_languageModel": [
+        []
+      ]
+    },
+    "Get Hosts": {
+      "main": [
+        [
+          {
+            "node": "Update Query Placeholder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Run Query Campaign": {
+      "main": [
+        [
+          {
+            "node": "AI Analyst",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Analyst",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ollama Chat Model1": {
+      "ai_languageModel": [
+        []
+      ]
+    },
+    "Groq Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "f9db9893-62d0-4e36-83ea-ce6bd1fea080",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "b28dac86be42ca470b2d426ee13a19b40db49a908c794954a5ff31e7f0344469"
+  },
+  "id": "oDSPILgPviulIJZ_QzlBS",
+  "tags": []
+}

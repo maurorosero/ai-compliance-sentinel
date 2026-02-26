@@ -1,0 +1,318 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 3
+            }
+          ]
+        }
+      },
+      "id": "c6553c8c-ef61-460c-be7c-9ca505c2157d",
+      "name": "Schedule Trigger7",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        1712,
+        1248
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const policyItems = $items('Division de policies inferidas1', 0, 0).map(i => i.json);\nconst hostResponseItems = $items('Fallas de hosts por policies1', 0, 0).map(i => i.json);\n\nfunction esc(v) {\n  return String(v ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\n}\n\nif (!policyItems.length) {\n  const now = new Date().toISOString();\n  return [{\n    json: {\n      subject: 'Reporte Fleet - Sin incumplimientos',\n      report_seed: `No se detectaron incumplimientos. Generado: ${now}`,\n      body_html: `<div style=\"font-family:Segoe UI,Arial,sans-serif;max-width:900px;margin:0 auto;padding:18px;color:#111827;\"><h2 style=\"margin:0 0 8px 0;color:#0f172a;\">Reporte de incumplimientos Fleet</h2><p style=\"margin:0 0 8px 0;\">No se detectaron incumplimientos en esta ejecución.</p><p style=\"margin:0;color:#6b7280;font-size:12px;\">Generado: ${esc(now)}</p></div>`\n    }\n  }];\n}\n\nconst grouped = new Map();\nfor (let i = 0; i < policyItems.length; i++) {\n  const p = policyItems[i];\n  const resp = hostResponseItems[i] || {};\n  const hosts = resp.hosts || resp.data?.hosts || resp.data || [];\n  const arrHosts = Array.isArray(hosts) ? hosts : [];\n  const key = `${p.policy_id}::${p.policy_name}`;\n\n  if (!grouped.has(key)) {\n    grouped.set(key, {\n      policy_id: p.policy_id,\n      policy_name: p.policy_name || 'Sin nombre',\n      policy_description: p.policy_description || 'Sin descripcion',\n      hosts: new Set()\n    });\n  }\n\n  const entry = grouped.get(key);\n  if (!arrHosts.length) entry.hosts.add('Sin detalle de host');\n  else for (const h of arrHosts) entry.hosts.add(h.display_name || h.hostname || h.name || 'unknown-host');\n}\n\nconst totalPolicies = grouped.size;\nlet totalHosts = 0;\nlet rows = '';\nconst plain = [];\n\nfor (const g of grouped.values()) {\n  const hostList = Array.from(g.hosts);\n  totalHosts += hostList.length;\n  const hostsHtml = hostList.map(h => `<span style=\"display:inline-block;background:#eef2ff;color:#1e3a8a;border:1px solid #c7d2fe;border-radius:999px;padding:3px 9px;margin:2px 6px 2px 0;font-size:12px;\">${esc(h)}</span>`).join('');\n\n  rows += `<tr><td style=\"padding:12px;border-bottom:1px solid #e5e7eb;vertical-align:top;\"><div style=\"font-weight:600;color:#111827;\">${esc(g.policy_name)}</div></td><td style=\"padding:12px;border-bottom:1px solid #e5e7eb;vertical-align:top;color:#374151;\">${esc(g.policy_description)}</td><td style=\"padding:12px;border-bottom:1px solid #e5e7eb;vertical-align:top;\">${hostsHtml}</td></tr>`;\n\n  plain.push(`- Politica: ${g.policy_name}`);\n  plain.push(`  Descripcion: ${g.policy_description}`);\n  plain.push(`  Computadoras: ${hostList.join(', ')}`);\n  plain.push('');\n}\n\nconst now = new Date().toISOString();\nconst report_seed = [`Resumen: ${totalPolicies} policies incumplidas y ${totalHosts} computadoras afectadas.`, '', ...plain, `Generado: ${now}`].join('\\n');\nconst body_html = `<div style=\"font-family:Segoe UI,Arial,sans-serif;max-width:980px;margin:0 auto;padding:18px;color:#111827;\"><div style=\"background:linear-gradient(135deg,#0f172a,#1e293b);color:#fff;border-radius:12px;padding:16px 18px;margin-bottom:14px;\"><h2 style=\"margin:0 0 6px 0;font-size:20px;\">Reporte de incumplimientos Fleet</h2><div style=\"font-size:13px;opacity:.92;\">${totalPolicies} policies incumplidas · ${totalHosts} computadoras afectadas</div><div style=\"font-size:12px;opacity:.8;margin-top:6px;\">Generado: ${esc(now)}</div></div><table style=\"width:100%;border-collapse:separate;border-spacing:0;background:#fff;border:1px solid #e5e7eb;border-radius:12px;overflow:hidden;\"><thead><tr style=\"background:#f8fafc;\"><th style=\"text-align:left;padding:12px;border-bottom:1px solid #e5e7eb;color:#0f172a;\">Policy incumplida</th><th style=\"text-align:left;padding:12px;border-bottom:1px solid #e5e7eb;color:#0f172a;\">Descripcion</th><th style=\"text-align:left;padding:12px;border-bottom:1px solid #e5e7eb;color:#0f172a;\">Computadoras que incumplen</th></tr></thead><tbody>${rows}</tbody></table></div>`;\n\nreturn [{ json: { subject: `[ALERTA] Incumplimientos Fleet (${totalPolicies} policies)`, report_seed, body_html } }];"
+      },
+      "id": "c56ba4bb-37a7-4079-aded-ad68affdd8d6",
+      "name": "Build Unified Report",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2576,
+        1248
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{'https://host.docker.internal:1337/api/latest/fleet/hosts?page=0&per_page=50&device_mapping=true&order_key=display_name&order_direction=asc&policy_id=' + $json.policy_id + '&policy_response=failing'}}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer ***"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "options": {
+          "allowUnauthorizedCerts": true,
+          "timeout": 30000
+        }
+      },
+      "id": "b6db001b-1bc9-442c-9296-1f9f772f4e5c",
+      "name": "Fallas de hosts por policies1",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2384,
+        1248
+      ],
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const j = $json;\nlet policies = [];\nif (Array.isArray(j?.policies)) {\n  policies = j.policies;\n} else if (Array.isArray(j) && j[0] && Array.isArray(j[0].policies)) {\n  policies = j[0].policies;\n}\nreturn policies\n  .map(p => {\n    const passing = Number(p.passing_host_count || 0);\n    const failing = Number(p.failing_host_count || 0);\n    return {\n      json: {\n        policy_id: String(p.id ?? ''),\n        policy_name: p.name ?? '',\n        policy_description: p.description || 'Sin descripcion',\n        passing_host_count: passing,\n        failing_host_count: failing,\n        timestamp: p.host_count_updated_at ?? p.updated_at ?? new Date().toISOString()\n      }\n    };\n  })\n  .filter(x => x.json.failing_host_count > 0);"
+      },
+      "id": "de33ebe9-507f-4e1c-9b0a-1377f3c72860",
+      "name": "Division de policies inferidas1",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2208,
+        1248
+      ]
+    },
+    {
+      "parameters": {
+        "url": "=https://host.docker.internal:1337/api/latest/fleet/policies?failing=true",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer ***"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "options": {
+          "allowUnauthorizedCerts": true,
+          "timeout": 30000
+        }
+      },
+      "id": "b43094f7-f16a-42ed-9196-8c3fd6c70d01",
+      "name": "Request a fleet de politicas inferidas1",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2048,
+        1248
+      ]
+    },
+    {
+      "parameters": {
+        "url": "=https://host.docker.internal:1337/api/latest/fleet/policies",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer ***"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "options": {
+          "allowUnauthorizedCerts": true,
+          "timeout": 30000
+        }
+      },
+      "id": "63f2be73-b60b-4b32-bc17-4b632d8754c7",
+      "name": "Request para la lista de politicas1",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1872,
+        1248
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Basado en este reporte de incumplimientos, escribe recomendaciones breves, priorizadas y accionables en espanol. Responde SOLO con lineas en este formato (sin markdown): PRIORIDAD | ACCION | RESPONSABLE. Maximo 6 lineas. No inventes datos.\\n\\n{{$json.report_seed}}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        2736,
+        1248
+      ],
+      "id": "d99cf795-c068-4be0-a3da-1c77f23ef946",
+      "name": "IA Generadora de mensajes1"
+    },
+    {
+      "parameters": {
+        "model": "llama-3.1-8b-instant",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        2624,
+        1456
+      ],
+      "id": "534f01a7-4af9-4faa-af82-23d16534b293",
+      "name": "Groq Mensajeria1",
+      "credentials": {
+        "groqApi": {
+          "id": "l25ZH62QPBhoElvW",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const base = $item(0).$node['Build Unified Report'].json;\nconst raw = String($json.output ?? $json.response ?? $json.text ?? 'Sin recomendaciones generadas.');\n\nfunction esc(v) {\n  return String(v ?? '')\n    .replace(/&/g, '&amp;')\n    .replace(/</g, '&lt;')\n    .replace(/>/g, '&gt;');\n}\n\nconst lines = raw\n  .split(/\\r?\\n/)\n  .map(l => l.trim())\n  .filter(Boolean)\n  .slice(0, 8);\n\nconst rows = lines.map((line, idx) => {\n  const parts = line.split('|').map(p => p.trim());\n  const prioridad = parts[0] || 'MEDIA';\n  const accion = parts[1] || line.replace(/^[-*\\d.)\\s]+/, '');\n  const responsable = parts[2] || 'Equipo de TI';\n\n  const badgeColor = prioridad.toUpperCase().includes('ALTA')\n    ? '#dc2626'\n    : prioridad.toUpperCase().includes('MEDIA')\n      ? '#d97706'\n      : '#2563eb';\n\n  return `<tr>\n    <td style=\"padding:10px;border-bottom:1px solid #e5e7eb;vertical-align:top;\">\n      <span style=\"display:inline-block;background:${badgeColor};color:#fff;font-size:11px;font-weight:700;padding:3px 8px;border-radius:999px;\">${esc(prioridad.toUpperCase())}</span>\n    </td>\n    <td style=\"padding:10px;border-bottom:1px solid #e5e7eb;vertical-align:top;color:#1f2937;\">${esc(accion)}</td>\n    <td style=\"padding:10px;border-bottom:1px solid #e5e7eb;vertical-align:top;color:#374151;\">${esc(responsable)}</td>\n  </tr>`;\n}).join('');\n\nconst recHtml = `<div style=\"font-family:Segoe UI,Arial,sans-serif;max-width:980px;margin:14px auto 0 auto;padding:14px;border:1px solid #e5e7eb;border-radius:12px;background:#f8fafc;\">\n  <h3 style=\"margin:0 0 10px 0;color:#0f172a;\">Recomendaciones sugeridas por IA</h3>\n  <table style=\"width:100%;border-collapse:separate;border-spacing:0;background:#fff;border:1px solid #e5e7eb;border-radius:10px;overflow:hidden;\">\n    <thead>\n      <tr style=\"background:#f1f5f9;\">\n        <th style=\"text-align:left;padding:10px;border-bottom:1px solid #e5e7eb;\">Prioridad</th>\n        <th style=\"text-align:left;padding:10px;border-bottom:1px solid #e5e7eb;\">Accion recomendada</th>\n        <th style=\"text-align:left;padding:10px;border-bottom:1px solid #e5e7eb;\">Responsable</th>\n      </tr>\n    </thead>\n    <tbody>\n      ${rows || '<tr><td colspan=\"3\" style=\"padding:12px;\">Sin recomendaciones generadas.</td></tr>'}\n    </tbody>\n  </table>\n</div>`;\n\nreturn [{ json: { subject: base.subject, body_html: base.body_html + recHtml } }];"
+      },
+      "id": "fdb4188a-bf3b-4239-9240-eb4ca19de6a9",
+      "name": "Normalizacion de mensaje para correo1",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3056,
+        1248
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "ejsg011004class@gmail.com",
+        "subject": "={{$json.subject}}",
+        "message": "={{$json.body_html}}",
+        "options": {}
+      },
+      "id": "a20565b2-88d6-4529-912f-fbd538faa5c7",
+      "name": "Enviar correo1",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        3248,
+        1248
+      ],
+      "webhookId": "cfb1c18e-2fa8-478e-a9fb-51ea5779c194",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "FPACv44wIAVr5prC",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Schedule Trigger7": {
+      "main": [
+        [
+          {
+            "node": "Request para la lista de politicas1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Unified Report": {
+      "main": [
+        [
+          {
+            "node": "IA Generadora de mensajes1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fallas de hosts por policies1": {
+      "main": [
+        [
+          {
+            "node": "Build Unified Report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Division de policies inferidas1": {
+      "main": [
+        [
+          {
+            "node": "Fallas de hosts por policies1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Request a fleet de politicas inferidas1": {
+      "main": [
+        [
+          {
+            "node": "Division de policies inferidas1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Request para la lista de politicas1": {
+      "main": [
+        [
+          {
+            "node": "Request a fleet de politicas inferidas1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IA Generadora de mensajes1": {
+      "main": [
+        [
+          {
+            "node": "Normalizacion de mensaje para correo1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Mensajeria1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "IA Generadora de mensajes1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalizacion de mensaje para correo1": {
+      "main": [
+        [
+          {
+            "node": "Enviar correo1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "695e011ca5fced15abed24fc860ae0275c3eaf218f3be1d925265a518adaaec2"
+  }
+}

@@ -1,0 +1,247 @@
+{
+  "name": "Crear Politicas",
+  "nodes": [
+    {
+      "parameters": {
+        "model": "openai/gpt-oss-120b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        -128,
+        208
+      ],
+      "id": "c96fe5b1-7196-46a2-a70e-962e3b9d30e1",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "Byq8awLCudTT0Q6N",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -464,
+        32
+      ],
+      "id": "bb274a73-1081-4500-ae07-546bfec7216f",
+      "name": "Chat Trigger",
+      "webhookId": "f39a75be-9e41-4493-8d59-101365c25140"
+    },
+    {
+      "parameters": {
+        "jsCode": "const aiResponse = $node[\"Policy Architect AI1\"].json.output;\nconst jsonMatch = aiResponse.match(/\\{[\\s\\S]*\\}/);\n\nif (jsonMatch) {\n  return JSON.parse(jsonMatch[0]);\n} else {\n  throw new Error(\"No se encontró JSON válido\");\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        224,
+        32
+      ],
+      "id": "2586539b-3cfe-4cd2-aba3-96da86aec736",
+      "name": "JSON Cleaner"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.chatInput }}",
+        "options": {
+          "systemMessage": "Rol: Arquitecto de Seguridad para Fleet.\\nTarea: Generar un JSON para crear una política de cumplimiento en Windows.\n\nLÓGICA POSITIVA OBLIGATORIA:\n- La query debe devolver filas cuando el equipo está SEGURO.\n- Ejemplo: SELECT 1 FROM windows_firewall_rules WHERE service_enabled = 1;\\n\\nFORMATO DE SALIDA (JSON PURO):\n{\n  \"name\": \"Nombre de la política\",\n  \"query\": \"SELECT 1...\",\n  \"description\\\": \"Qué vigila\",  \n  \"resolution\": \"Cómo arreglarlo\",\n  \"platform\": \"windows\"\n}\n\nNo añadas explicaciones, solo el JSON."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        -128,
+        32
+      ],
+      "id": "08bd3620-dcfd-4f58-b8b7-8ba36e8a8118",
+      "name": "Policy Architect AI1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://host.docker.internal:1337/api/v1/fleet/login",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n  \"email\": \"kjmg2325@gmail.com\",\n  \"password\": \"@Stayhumble521\"\n}",
+        "options": {
+          "allowUnauthorizedCerts": true
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        496,
+        32
+      ],
+      "id": "1f0fd689-474b-4819-b2e1-621059c4166b",
+      "name": "GET TOKEN1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://host.docker.internal:1337/api/v1/fleet/global/policies",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $json.token }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"name\": \"{{ $('JSON Cleaner').item.json.name }}\",\n  \"query\": \"{{ $('JSON Cleaner').item.json.query }}\",\n  \"description\": \"{{ $('JSON Cleaner').item.json.description }}\",\n  \"resolution\": \"{{ $('JSON Cleaner').item.json.resolution }}\",\n  \"platform\": \"{{ $('JSON Cleaner').item.json.platform }}\"\n}",
+        "options": {
+          "allowUnauthorizedCerts": true
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        768,
+        32
+      ],
+      "id": "0f247f9f-909d-4aaf-9d17-995ba703eefa",
+      "name": "Create Policy Endpoint1"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Analiza el resultado: {{ JSON.stringify($json) }}",
+        "options": {
+          "systemMessage": "Informa al usuario si la política se creó con éxito o describe el error."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        1008,
+        32
+      ],
+      "id": "4bc3d2de-0be8-4915-93f9-abadfe853a75",
+      "name": "AI Confirmation1"
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-oss-120b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        1008,
+        224
+      ],
+      "id": "9db53b5a-6165-4bfd-822c-0b2d033cc537",
+      "name": "Groq Chat Model2",
+      "credentials": {
+        "groqApi": {
+          "id": "Byq8awLCudTT0Q6N",
+          "name": "Groq account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Policy Architect AI1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Chat Trigger": {
+      "main": [
+        [
+          {
+            "node": "Policy Architect AI1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "JSON Cleaner": {
+      "main": [
+        [
+          {
+            "node": "GET TOKEN1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Policy Architect AI1": {
+      "main": [
+        [
+          {
+            "node": "JSON Cleaner",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GET TOKEN1": {
+      "main": [
+        [
+          {
+            "node": "Create Policy Endpoint1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Policy Endpoint1": {
+      "main": [
+        [
+          {
+            "node": "AI Confirmation1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Confirmation1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "761ed8f3-ff58-4f20-aaaa-3e16b8501e8c",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "b28dac86be42ca470b2d426ee13a19b40db49a908c794954a5ff31e7f0344469"
+  },
+  "id": "x7sLakNBZTxIasusPyyT_",
+  "tags": []
+}
